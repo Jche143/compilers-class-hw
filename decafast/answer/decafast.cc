@@ -1,12 +1,11 @@
-
-#include "decafast.tab.h"
+// #include "decafast.tab.h"
 #include <list>
 #include <ostream>
 #include <iostream>
 #include <sstream>
 
 #ifndef YYTOKENTYPE
-#include "decafast.tab.h"
+// #include "decafast.tab.h"
 #endif
 
 using namespace std;
@@ -98,12 +97,12 @@ public:
 
 //VarDefAST
 class VarDefAST : public decafAST {
-	string name;
+	string Name;
 	decafStmtList * TypeList;
 
 	public:
 		VarDefAST(decafStmtList * typelist) {}
-		VarDefAST(std::string name, typename * type) {
+		VarDefAST(std::string name, TypeAST * type) {
 			decafStmtList * typelist = new decafStmtList();
 			typelist->push_back(type);
 			TypeList = typelist;
@@ -127,7 +126,7 @@ class VarDefAST : public decafAST {
 // extern func identifier "(" [ { ExternType }+, ] ")" MethodType ";" 
 // ExternFunction(identifier name, method_type return_type, extern_type* typelist)
 class ExternFunctionAST : public decafAST {
-	string name;
+	string Name;
 	TypeAST * ReturnType;
 	VarDefAST * VarList;
 
@@ -160,7 +159,7 @@ public:
 		else
 			return string("Array(") + Size + ")";
 	}
-}
+};
 
 // FieldDecl(identifier name, decaf_type type, field_size size)
 // FieldDecl(x,IntType,Scalar)
@@ -169,14 +168,14 @@ class FieldDeclAST : public decafAST {
 	TypeAST * Type;
 	VarSizeAST * field_size;
 
-	FieldDeclAST(identifier name, TypeAST type, VarSizeAST size) : Name(name), TypeAST(type), field_size(size) { };
+	FieldDeclAST(string name, TypeAST* type, VarSizeAST* size) : Name(name), Type(type), field_size(size) { };
 	~FieldDeclAST() {
 		if(Type) delete Type; 
 		if(field_size) delete field_size;
 	};
 
 	string str() {
-		return string("FieldDecl(") + Name + "," + getString(Type) + "," + getString("field_size") + ")";
+		return string("FieldDecl(") + Name + "," + getString(Type) + "," + getString(field_size) + ")";
 	}
 };
 
@@ -187,7 +186,77 @@ class StringConstantAST : public decafAST {
 	StringConstantAST(string v): Value(v) {};
 	~StringConstantAST() {};
 
-	var str() {
+	string str() {
 		return string("StringConstant(") + Value + ")";
 	}
-}
+};
+
+//expr
+class ValueExpr : public decafAST {};
+
+//constant
+class NumberExpr : public ValueExpr {
+	string Value;
+	public:
+	NumberExpr(string value) : Value(value) {};
+	~NumberExpr() {};
+
+	string str() {
+		return string("NumberExpr(") + Value + ")";
+	}
+};
+
+class BoolExpr : public ValueExpr {
+	bool Value;
+	public:
+	BoolExpr(bool value) : Value(value) {};
+	~BoolExpr() {};
+
+	string str() {
+		return string("BoolExpr(") + (Value ? "True" : "False") + ")";
+	}
+};
+
+//AssignGlobalVar(identifier name, decaf_type type, constant value)
+class AssignGlobalVar : public decafAST {
+	string Name;
+	TypeAST* Type;
+	ValueExpr* Value;
+	public:
+	AssignGlobalVar(string name, TypeAST* type, ValueExpr* value) : Name(name), Type(type), Value(value) {};
+	~AssignGlobalVar() {
+		if (Type) delete Type;
+		if (Value) delete Value;
+	};
+
+	string str() {
+		return string("AssignGlobalVar(") + Name + "," + getString(Type) + "," + getString(Value) + ")";
+	}
+};
+
+// MethodBlock(typed_symbol* var_decl_list, statement* statement_list)
+class MethodBlockAST : public decafAST {
+	VarDefAST* VarDeclList;
+	decafStmtList* StatementList; 
+	public:
+	MethodBlockAST(VarDefAST* var_decl_list, decafStmtList* statement_list) : VarDeclList(var_decl_list), StatementList(statement_list) {};
+	~MethodBlockAST() {
+		if(VarDeclList) delete VarDeclList;
+		if(StatementList) delete StatementList;
+	};
+
+	string str(){
+		return string("MethodBlockAST(" + getString(VarDeclList) + "," + getString(StatementList) + ")");
+	}
+};
+
+
+//method_arg = StringConstant(string value) | expr
+
+
+
+//MethodBlock(typed_symbol* var_decl_list, statement* statement_list)
+class MethodBlockAST : public decafAST {
+	VarDefAST* var_decl_list;
+
+};
